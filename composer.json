@@ -1,0 +1,17 @@
+{
+  "name": "vk/slim",
+  "description": "Hexlet Slim example",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "vk",
+      "email": "belsynth@gmail.com"
+    }
+  ],
+  "require": {
+    "slim/slim": "^4.8",
+    "slim/psr7": "^1.4",
+    "slim/http": "^1.2"
+  }
+}
