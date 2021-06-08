@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Users Search</title>
+</head>
+<body>
+
+<?php if (empty($users)): ?>
+<h1>No users :(</h1>
+<?php endif; ?>
+
+<ul>
+<?php foreach ($users as $id => $user): ?>
+    <li>ID: <a href="/users/<?= htmlspecialchars($id) ?>"><?= htmlspecialchars($id) ?></a> | Nickname: <?= htmlspecialchars($user['nickname']) ?> | Email: <?= htmlspecialchars($user['email']) ?></li>
+<?php endforeach; ?>
+</ul>
+
+<form action="/users" method="get">
+    <input type="text" name="term" value="<?= htmlspecialchars($term) ?>">
+    <input type="submit" value="Search">
+</form>
+
+<h1>Search results</h1>
+
+<ul>
+<?php foreach ($names as $id => $name): ?>
+    <li><a href="/users/<?= htmlspecialchars($id) ?>"><?= htmlspecialchars($name['nickname']) ?></a></li>
+<?php endforeach; ?>
+</ul>
+
+</body>
+</html>
