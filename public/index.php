@@ -5,6 +5,8 @@ use DI\Container;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+$users = json_decode(file_get_contents('files/users.json'), true);
+
 $container = new Container();
 $container->set(
     'renderer',
@@ -16,7 +18,14 @@ $container->set(
 $app = AppFactory::createFromContainer($container);
 $app->addErrorMiddleware(true, true, true);
 
-$users = json_decode(file_get_contents('files/users.json'), true);
+$router = $app->getRouteCollector()->getRouteParser();
+
+$app->get(
+    '/',
+    function ($request, $response) use ($router) {
+        return $response->withRedirect($router->urlFor('users'), 302);
+    }
+);
 
 $app->get(
     '/users',
@@ -38,18 +47,17 @@ $app->get(
 
         return $this->get('renderer')->render($response, 'users/index.phtml', $params);
     }
-);
+)->setName('users');
 
-$app->get(
-    '/users/{id:[0-9]+}',
-    function ($request, $response, $args) use ($users) {
-        $id = $args['id'];
-        $params = [
-            'id' => $id,
-            'nickname' => $users[$id]['nickname'],
-        ];
+$app->post(
+    '/users',
+    function ($request, $response) use ($users, $router) {
+        $userData = $request->getParsedBodyParam('user');
+        $id = uniqid();
+        $users[$id] = $userData;
+        file_put_contents('files/users.json', json_encode($users, JSON_PRETTY_PRINT));
 
-        return $this->get('renderer')->render($response, 'users/show.phtml', $params);
+        return $response->withRedirect($router->urlFor('user', ['id' => $id]), 302);
     }
 );
 
@@ -58,18 +66,22 @@ $app->get(
     function ($request, $response) {
         return $this->get('renderer')->render($response, 'users/new.phtml');
     }
-);
+)->setName('new-user');
 
-$app->post(
-    '/users',
-    function ($request, $response) use ($users) {
-        $userData = $request->getParsedBodyParam('user');
-        $id = mt_rand(1, 100);
-        $users[$id] = $userData;
-        file_put_contents('files/users.json', json_encode($users, JSON_PRETTY_PRINT));
+$app->get(
+    '/users/{id}',
+    function ($request, $response, $args) use ($users) {
+        $id = $args['id'];
+        if (!array_key_exists($id, $users)) {
+            return $response->withStatus(404);
+        }
+        $params = [
+            'id' => $id,
+            'nickname' => $users[$id]['nickname'],
+        ];
 
-        return $response->withRedirect('/users', 302);
+        return $this->get('renderer')->render($response, 'users/show.phtml', $params);
     }
-);
+)->setName('user');
 
 $app->run();
