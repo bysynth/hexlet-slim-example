@@ -13,13 +13,19 @@
 
 <form action="/users" method="post">
     <div>
-        <input type="text" name="user[nickname]" id="nickname">
+        <input type="text" name="user[nickname]" id="nickname" value="<?= htmlspecialchars($userData['nickname'] ?? '') ?>" required>
         <label for="nickname">Nickname</label>
     </div>
+    <?php if (isset($errors['nickname'])): ?>
+        <div style="font-size: 12px; color: red;"><?= $errors['nickname'] ?></div>
+    <?php endif ?>
     <div>
-        <input type="text" name="user[email]" id="email">
+        <input type="text" name="user[email]" id="email" value="<?= htmlspecialchars($userData['email'] ?? '') ?>" required>
         <label for="email">Email</label>
     </div>
+    <?php if (isset($errors['email'])): ?>
+        <div style="font-size: 12px; color: red;"><?= $errors['email'] ?></div>
+    <?php endif ?>
     <div>
         <input type="submit" value="Create">
     </div>

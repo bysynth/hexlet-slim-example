@@ -9,9 +9,12 @@
 </head>
 <body>
 
+<?php if (!empty($flash)): ?>
+<p style="color: green"><?= $flash['success'][0]?></p>
+<?php endif; ?>
+
 <?php if (empty($users)): ?>
 <h1>No users :(</h1>
-<p><a href="/users/new">Add new user</a></p>
 <?php endif; ?>
 
 <ul>
