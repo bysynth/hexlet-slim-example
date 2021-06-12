@@ -32,6 +32,12 @@
     </div>
 </form>
 
+<h2>Del user?</h2>
+<form action="/users/<?= $id ?>" method="post">
+    <input type="hidden" name="_METHOD" value="DELETE">
+    <input type="submit" value="Remove">
+</form>
+
 <p><a href="/users">Back to users</a></p>
 
 </body>

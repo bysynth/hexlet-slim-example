@@ -167,4 +167,17 @@ $app->patch(
     }
 );
 
+$app->delete(
+    '/users/{id}',
+    function ($request, $response, $args) use ($users, $router) {
+        $id = $args['id'];
+        unset($users[$id]);
+        file_put_contents('files/users.json', json_encode($users, JSON_PRETTY_PRINT));
+
+        $this->get('flash')->addMessage('success', "User with id $id have been removed");
+
+        return $response->withRedirect($router->urlFor('users'));
+    }
+);
+
 $app->run();
