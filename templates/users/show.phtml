@@ -10,7 +10,8 @@
 <body>
 
 <h1>Hello, <?= htmlspecialchars($id) ?></h1>
-<h2>Your nickname is <?= htmlspecialchars($nickname) ?></h2>
+<h2>Your nickname is <?= htmlspecialchars($user['nickname']) ?></h2>
+<p><a href="/users/<?= $id ?>/edit">Edit user</a></p>
 <p><a href="/users">Back to users</a></p>
 
 </body>

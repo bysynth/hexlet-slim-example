@@ -1,6 +1,7 @@
 <?php
 
 use Slim\Factory\AppFactory;
+use Slim\Middleware\MethodOverrideMiddleware;
 use DI\Container;
 use App\Validator;
 
@@ -28,6 +29,7 @@ AppFactory::setContainer($container);
 $app = AppFactory::create();
 
 $app->addErrorMiddleware(true, true, true);
+$app->add(MethodOverrideMiddleware::class);
 
 $router = $app->getRouteCollector()->getRouteParser();
 
@@ -74,7 +76,7 @@ $app->post(
             $id = uniqid();
             $users[$id] = $userData;
             file_put_contents('files/users.json', json_encode($users, JSON_PRETTY_PRINT));
-            $this->get('flash')->addMessage('success', "Пользователь c id $id успешно добавлен");
+            $this->get('flash')->addMessage('success', "User with id $id have been added");
 
             return $response->withRedirect($router->urlFor('users'), 302);
         }
@@ -110,11 +112,59 @@ $app->get(
 
         $params = [
             'id' => $id,
-            'nickname' => $users[$id]['nickname'],
+            'user' => $users[$id]
         ];
 
         return $this->get('renderer')->render($response, 'users/show.phtml', $params);
     }
 )->setName('user');
+
+$app->get(
+    '/users/{id}/edit',
+    function ($request, $response, $args) use ($users) {
+        $messages = $this->get('flash')->getMessages();
+        $id = $args['id'];
+        $userData = $users[$id];
+        $params = [
+            'id' => $id,
+            'userData' => $userData,
+            'errors' => [],
+            'flash' => $messages
+        ];
+
+        return $this->get('renderer')->render($response, 'users/edit.phtml', $params);
+    }
+)->setName('edit-user');
+
+$app->patch(
+    '/users/{id}',
+    function ($request, $response, $args) use ($users, $router) {
+        $id = $args['id'];
+        $user = $users[$id];
+        $userData = $request->getParsedBodyParam('user');
+
+        $validator = new Validator();
+        $errors = $validator->validate($userData);
+
+        if (count($errors) === 0) {
+            $user['nickname'] = $userData['nickname'];
+            $user['email'] = $userData['email'];
+            $users[$id] = $user;
+            file_put_contents('files/users.json', json_encode($users, JSON_PRETTY_PRINT));
+
+            $this->get('flash')->addMessage('success', "Users data with id $id have been updated");
+
+            return $response->withRedirect($router->urlFor('users'));
+        }
+
+        $params = [
+            'id' => $id,
+            'userData' => $userData,
+            'errors' => $errors
+        ];
+
+        return $this->get('renderer')->render($response->withStatus(422), 'users/edit.phtml', $params);
+    }
+);
 
 $app->run();
