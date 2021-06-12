@@ -9,8 +9,6 @@ require __DIR__ . '/../vendor/autoload.php';
 
 session_start();
 
-$users = json_decode(file_get_contents('files/users.json'), true);
-
 $container = new Container();
 $container->set(
     'renderer',
@@ -42,9 +40,10 @@ $app->get(
 
 $app->get(
     '/users',
-    function ($request, $response) use ($users) {
-        $messages = $this->get('flash')->getMessages();
+    function ($request, $response) {
+        $users = json_decode($request->getCookieParam('users', json_encode([])), true);
         $term = $request->getQueryParam('term');
+        $messages = $this->get('flash')->getMessages();
 
         if (!empty($term) && !empty($users)) {
             $names = array_filter(
@@ -66,7 +65,8 @@ $app->get(
 
 $app->post(
     '/users',
-    function ($request, $response) use ($users, $router) {
+    function ($request, $response) use ($router) {
+        $users = json_decode($request->getCookieParam('users'), true);
         $userData = $request->getParsedBodyParam('user');
 
         $validator = new Validator();
@@ -75,15 +75,17 @@ $app->post(
         if (count($errors) === 0) {
             $id = uniqid();
             $users[$id] = $userData;
-            file_put_contents('files/users.json', json_encode($users, JSON_PRETTY_PRINT));
+            $encodedUser = json_encode($users);
+
             $this->get('flash')->addMessage('success', "User with id $id have been added");
 
-            return $response->withRedirect($router->urlFor('users'), 302);
+            return $response->withHeader('Set-Cookie', "users=$encodedUser")
+                ->withRedirect($router->urlFor('users'), 302);
         }
 
         $params = [
             'userData' => $userData,
-            'errors' => $errors
+            'errors' => $errors,
         ];
 
         return $this->get('renderer')->render($response->withStatus(422), 'users/new.phtml', $params);
@@ -103,8 +105,9 @@ $app->get(
 
 $app->get(
     '/users/{id}',
-    function ($request, $response, $args) use ($users) {
+    function ($request, $response, $args) {
         $id = $args['id'];
+        $users = json_decode($request->getCookieParam('users'), true);
 
         if (!array_key_exists($id, $users)) {
             return $response->write('Page not found')->withStatus(404);
@@ -121,10 +124,12 @@ $app->get(
 
 $app->get(
     '/users/{id}/edit',
-    function ($request, $response, $args) use ($users) {
+    function ($request, $response, $args) {
         $messages = $this->get('flash')->getMessages();
         $id = $args['id'];
+        $users = json_decode($request->getCookieParam('users'), true);
         $userData = $users[$id];
+
         $params = [
             'id' => $id,
             'userData' => $userData,
@@ -138,8 +143,9 @@ $app->get(
 
 $app->patch(
     '/users/{id}',
-    function ($request, $response, $args) use ($users, $router) {
+    function ($request, $response, $args) use ($router) {
         $id = $args['id'];
+        $users = json_decode($request->getCookieParam('users'), true);
         $user = $users[$id];
         $userData = $request->getParsedBodyParam('user');
 
@@ -150,11 +156,12 @@ $app->patch(
             $user['nickname'] = $userData['nickname'];
             $user['email'] = $userData['email'];
             $users[$id] = $user;
-            file_put_contents('files/users.json', json_encode($users, JSON_PRETTY_PRINT));
+            $encodedUser = json_encode($users);
 
             $this->get('flash')->addMessage('success', "Users data with id $id have been updated");
 
-            return $response->withRedirect($router->urlFor('users'));
+            return $response->withHeader('Set-Cookie', "users=$encodedUser")
+                ->withRedirect($router->urlFor('users'), 302);
         }
 
         $params = [
@@ -169,14 +176,16 @@ $app->patch(
 
 $app->delete(
     '/users/{id}',
-    function ($request, $response, $args) use ($users, $router) {
+    function ($request, $response, $args) use ($router) {
         $id = $args['id'];
+        $users = json_decode($request->getCookieParam('users'), true);
         unset($users[$id]);
-        file_put_contents('files/users.json', json_encode($users, JSON_PRETTY_PRINT));
+        $encodedUser = json_encode($users);
 
         $this->get('flash')->addMessage('success', "User with id $id have been removed");
 
-        return $response->withRedirect($router->urlFor('users'));
+        return $response->withHeader('Set-Cookie', "users=$encodedUser")
+            ->withRedirect($router->urlFor('users'), 302);
     }
 );
 
