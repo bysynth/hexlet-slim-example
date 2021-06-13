@@ -50,7 +50,7 @@ $app->get(
 )->setName('root');
 
 $app->post(
-    '/login',
+    '/session',
     function ($request, $response) use ($login, $router) {
         $loginData = $request->getParsedBodyParam('email');
 
@@ -66,8 +66,8 @@ $app->post(
     }
 );
 
-$app->post(
-    '/logout',
+$app->delete(
+    '/session',
     function ($request, $response) use ($router) {
 
         $_SESSION = [];
@@ -243,7 +243,7 @@ $app->delete(
         $this->get('flash')->addMessage('success', "User with id $id have been removed");
 
         return $response->withHeader('Set-Cookie', "users=$encodedUser;path=/")
-            ->withRedirect($router->urlFor('users'), 302);
+            ->withRedirect($router->urlFor('users'));
     }
 );
 

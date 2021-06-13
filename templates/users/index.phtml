@@ -10,7 +10,8 @@
 <body>
 
 <?php if (isset($_SESSION['isAdmin'])): ?>
-<form action="/logout" method="post">
+<form action="/session" method="post">
+    <input type="hidden" name="_METHOD" value="DELETE">
     <input type="submit" value="Logout">
 </form>
 <?php endif; ?>
