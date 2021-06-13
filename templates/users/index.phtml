@@ -9,6 +9,12 @@
 </head>
 <body>
 
+<?php if (isset($_SESSION['isAdmin'])): ?>
+<form action="/logout" method="post">
+    <input type="submit" value="Logout">
+</form>
+<?php endif; ?>
+
 <?php if (!empty($flash)): ?>
 <p style="color: green"><?= $flash['success'][0]?></p>
 <?php endif; ?>
