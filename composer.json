@@ -15,7 +15,6 @@
     }
   },
   "require": {
-    "ext-json": "*",
     "slim/slim": "^4.8",
     "slim/psr7": "^1.4",
     "slim/http": "^1.2",
